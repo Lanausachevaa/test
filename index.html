@@ -74,18 +74,6 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #fdfaf7; }
         ::-webkit-scrollbar-thumb { background: #e5d1c5; border-radius: 4px; }
-
-        #surprise-modal {
-            transition: opacity 0.3s ease;
-        }
-        #surprise-modal.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        #surprise-modal:not(.hidden) {
-            opacity: 1;
-            pointer-events: auto;
-        }
     </style>
 </head>
 <body class="font-sans antialiased">
@@ -141,13 +129,6 @@
                 </div>
                 
                 <div id="calendar-days" class="calendar-grid text-center gap-y-2"></div>
-
-                <!-- 🎁 КНОПКА "ПОРАДОВАТЬ МЕНЯ СЕГОДНЯ" (под календарём) -->
-                <div class="mt-8 flex justify-center">
-                    <button id="surprise-btn" class="bg-[#800000] hover:bg-[#600000] text-white px-8 py-3 rounded text-sm uppercase tracking-[0.15em] transition-all shadow-md hover:shadow-lg">
-                        Порадовать меня сегодня
-                    </button>
-                </div>
             </div>
         </section>
 
@@ -166,22 +147,6 @@
             © 2026 · Сделано с любовью ❤️
         </p>
     </footer>
-
-    <!-- 🎁 МОДАЛЬНОЕ ОКНО С СЮРПРИЗОМ (минималистичное) -->
-    <div id="surprise-modal" class="hidden fixed inset-0 bg-black/30 z-50 items-center justify-center">
-        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <div class="flex justify-end">
-                <button id="close-surprise" class="text-leif-charcoal/30 hover:text-leif-charcoal transition text-xl">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="text-center">
-                <div id="surprise-image" class="w-full h-64 rounded-lg bg-leif-sand/20 mb-4 bg-cover bg-center"></div>
-                <h4 id="surprise-title" class="text-xl font-serif italic mb-2">Название</h4>
-                <p id="surprise-phrase" class="text-sm text-leif-charcoal/50 italic">Фраза</p>
-            </div>
-        </div>
-    </div>
 
     <script>
         // ⚙️ НАСТРОЙКА — ВСТАВЬ СВОЙ URL
@@ -203,50 +168,6 @@
             { date: 8, month: 2, year: 2026, label: "🌸 8 марта" },
             { date: 23, month: 3, year: 2026, label: "🎁 День рождения" },
             { date: 11, month: 6, year: 2026, label: "🎂 3 года нашим прекрасным отношениям" }
-        ];
-
-        // ----- МАССИВ МЕЛОЧЕЙ ДЛЯ СЮРПРИЗА -----
-        const smallGifts = [
-            {
-                title: "Мармеладные мишки",
-                image: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                title: "Маленькая шоколадка с орешками",
-                image: "https://images.unsplash.com/photo-1549007953-2e2e3a1c6c1e?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                title: "Блокнот в цветочек",
-                image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                title: "Мягкий брелок-котик",
-                image: "https://images.unsplash.com/photo-1591561954557-26941269f5e6?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                title: "Кружка с сердечком",
-                image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                title: "Мыло ручной работы",
-                image: "https://images.unsplash.com/photo-1600857062241-98e5dba7f214?auto=format&fit=crop&q=80&w=400"
-            },
-            {
-                title: "Пакетик вкусного чая",
-                image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&q=80&w=400"
-            }
-        ];
-
-        // ----- МИЛЫЕ ФРАЗЫ ДЛЯ СЮРПРИЗОВ -----
-        const cutePhrases = [
-            "Ты — моё самое любимое чудо 🥰",
-            "Спасибо, что ты есть у меня 💕",
-            "Ты делаешь мои дни ярче ✨",
-            "Каждый день с тобой — праздник 🌸",
-            "Ты — моя самая большая радость 💖",
-            "Ты у меня самый лучший ❤️",
-            "С тобой даже дождик кажется тёплым ☀️",
-            "Ты — моя самая любимая сказка 🌙"
         ];
 
         // ----- РАБОТА С GOOGLE SHEETS -----
@@ -430,20 +351,25 @@
             grid.innerHTML = html;
             renderEvents();
         }
-
-        // ----- РЕНДЕРИНГ СОБЫТИЙ -----
+        // ----- РЕНДЕРИНГ СОБЫТИЙ (упрощённый, без года) -----
         function renderEvents() {
             const container = document.getElementById('events-list');
             const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
 
+            // Определяем текущий и следующий месяц (из календаря)
             const currentMonthNow = currentMonth;
+            const currentYearNow = currentYear;
             
+            // Фильтруем события: только на текущий и следующий месяц (без учёта года)
             const upcomingEvents = events.filter(e => {
+                // Если событие в текущем месяце
                 if (e.month === currentMonthNow) return true;
+                // Если событие в следующем месяце
                 if (e.month === (currentMonthNow + 1) % 12) return true;
                 return false;
             });
 
+            // Сортируем события по дате
             const sortedEvents = upcomingEvents.sort((a, b) => a.month - b.month || a.date - b.date);
 
             if (sortedEvents.length === 0) {
@@ -465,6 +391,65 @@
                 </div>
             `).join('');
         }
+        // // ----- РЕНДЕРИНГ СОБЫТИЙ (только ближайшие 2 месяца) -----
+        // function renderEvents() {
+        //     const container = document.getElementById('events-list');
+        //     const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
+
+        //     // Определяем текущий и следующий месяц
+        //     const currentMonthNow = new Date().getMonth();
+        //     const currentYearNow = new Date().getFullYear();
+            
+        //     // Фильтруем события: только на текущий и следующий месяц
+        //     const upcomingEvents = events.filter(e => {
+        //         // Если событие в текущем месяце
+        //         if (e.month === currentMonthNow && e.year === currentYearNow) return true;
+        //         // Если событие в следующем месяце
+        //         if (e.month === (currentMonthNow + 1) % 12 && e.year === currentYearNow) return true;
+        //         // Если событие в январе следующего года (когда текущий месяц декабрь)
+        //         if (currentMonthNow === 11 && e.month === 0 && e.year === currentYearNow + 1) return true;
+        //         return false;
+        //     });
+
+        //     // Сортируем события по дате
+        //     const sortedEvents = upcomingEvents.sort((a, b) => a.month - b.month || a.date - b.date);
+
+        //     if (sortedEvents.length === 0) {
+        //         container.innerHTML = `
+        //             <div class="text-leif-charcoal/40 text-sm font-light italic">
+        //                 Нет событий в ближайшие 2 месяца
+        //             </div>
+        //         `;
+        //         return;
+        //     }
+
+        //     container.innerHTML = sortedEvents.map(e => `
+        //         <div class="flex items-center gap-4">
+        //             <div class="w-2 h-2 rounded-full bg-leif-clay"></div>
+        //             <div>
+        //                 <p class="text-[10px] font-medium uppercase tracking-[0.15em] text-leif-charcoal/50">${e.date} ${monthNames[e.month]}</p>
+        //                 <p class="font-serif italic text-lg">${e.label}</p>
+        //             </div>
+        //         </div>
+        //     `).join('');
+        // }
+        // // ----- РЕНДЕРИНГ СОБЫТИЙ -----
+        // function renderEvents() {
+        //     const container = document.getElementById('events-list');
+        //     const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
+
+        //     const sortedEvents = [...events].sort((a, b) => a.month - b.month || a.date - b.date);
+
+        //     container.innerHTML = sortedEvents.map(e => `
+        //         <div class="flex items-center gap-4">
+        //             <div class="w-2 h-2 rounded-full bg-leif-clay"></div>
+        //             <div>
+        //                 <p class="text-[10px] font-medium uppercase tracking-[0.15em] text-leif-charcoal/50">${e.date} ${monthNames[e.month]}</p>
+        //                 <p class="font-serif italic text-lg">${e.label}</p>
+        //             </div>
+        //         </div>
+        //     `).join('');
+        // }
 
         // ----- ЛОГИКА "ИСПОЛНЕНО" -----
         async function fulfillWish(btn) {
@@ -539,50 +524,6 @@
 
         // ----- КНОПКА СИНХРОНИЗАЦИИ -----
         document.getElementById('sync-btn').addEventListener('click', syncData);
-
-        // ----- 🎁 ЛОГИКА СЮРПРИЗА (без бюджета) -----
-        const surpriseModal = document.getElementById('surprise-modal');
-        const surpriseImage = document.getElementById('surprise-image');
-        const surpriseTitle = document.getElementById('surprise-title');
-        const surprisePhrase = document.getElementById('surprise-phrase');
-
-        function getRandomGift() {
-            return smallGifts[Math.floor(Math.random() * smallGifts.length)];
-        }
-
-        function getRandomPhrase() {
-            return cutePhrases[Math.floor(Math.random() * cutePhrases.length)];
-        }
-
-        function showSurprise() {
-            const gift = getRandomGift();
-            const phrase = getRandomPhrase();
-            
-            surpriseTitle.textContent = gift.title;
-            surpriseImage.style.backgroundImage = `url(${gift.image})`;
-            surprisePhrase.textContent = phrase;
-        }
-
-        // Открыть модальное окно
-        document.getElementById('surprise-btn').addEventListener('click', () => {
-            surpriseModal.classList.remove('hidden');
-            surpriseModal.style.display = 'flex';
-            showSurprise();
-        });
-
-        // Закрыть модальное окно
-        document.getElementById('close-surprise').addEventListener('click', () => {
-            surpriseModal.classList.add('hidden');
-            surpriseModal.style.display = 'none';
-        });
-
-        // Закрыть по клику на фон
-        surpriseModal.addEventListener('click', (e) => {
-            if (e.target === surpriseModal) {
-                surpriseModal.classList.add('hidden');
-                surpriseModal.style.display = 'none';
-            }
-        });
 
         // ----- ЗАПУСК -----
         document.addEventListener('DOMContentLoaded', async () => {
