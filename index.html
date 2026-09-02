@@ -75,7 +75,6 @@
         ::-webkit-scrollbar-track { background: #fdfaf7; }
         ::-webkit-scrollbar-thumb { background: #e5d1c5; border-radius: 4px; }
 
-        /* Стили для модального окна */
         #surprise-modal {
             transition: opacity 0.3s ease;
         }
@@ -108,15 +107,6 @@
 
     <!-- ОСНОВНОЙ КОНТЕНТ -->
     <main class="max-w-7xl mx-auto px-6 md:px-12 py-12">
-
-        <!-- 🎁 БОРДОВАЯ КНОПКА "ПОРАДОВАТЬ МЕНЯ СЕГОДНЯ" -->
-        <div class="mb-8 flex justify-center">
-            <button id="surprise-btn" class="bg-[#800000] hover:bg-[#600000] text-white px-8 py-4 rounded-full text-sm uppercase tracking-[0.15em] transition-all shadow-lg hover:shadow-xl flex items-center gap-3">
-                <i class="fa-regular fa-gem text-lg"></i>
-                Порадовать меня сегодня
-                <i class="fa-regular fa-heart text-lg"></i>
-            </button>
-        </div>
 
         <section id="wishlist" class="mb-24">
             <div class="flex justify-between items-end mb-12 border-b border-leif-sand/40 pb-4">
@@ -151,6 +141,13 @@
                 </div>
                 
                 <div id="calendar-days" class="calendar-grid text-center gap-y-2"></div>
+
+                <!-- 🎁 КНОПКА "ПОРАДОВАТЬ МЕНЯ СЕГОДНЯ" (под календарём) -->
+                <div class="mt-8 flex justify-center">
+                    <button id="surprise-btn" class="bg-[#800000] hover:bg-[#600000] text-white px-8 py-3 rounded text-sm uppercase tracking-[0.15em] transition-all shadow-md hover:shadow-lg">
+                        Порадовать меня сегодня
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -170,44 +167,18 @@
         </p>
     </footer>
 
-    <!-- 🎁 МОДАЛЬНОЕ ОКНО С СЮРПРИЗОМ -->
-    <div id="surprise-modal" class="hidden fixed inset-0 bg-black/40 z-50 items-center justify-center">
-        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-serif italic">🎁 Сюрприз</h3>
-                <button id="close-surprise" class="text-leif-charcoal/40 hover:text-leif-charcoal transition">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
+    <!-- 🎁 МОДАЛЬНОЕ ОКНО С СЮРПРИЗОМ (минималистичное) -->
+    <div id="surprise-modal" class="hidden fixed inset-0 bg-black/30 z-50 items-center justify-center">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <div class="flex justify-end">
+                <button id="close-surprise" class="text-leif-charcoal/30 hover:text-leif-charcoal transition text-xl">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-
-            <!-- Шаг 1: Ввод бюджета -->
-            <div id="step-budget">
-                <p class="text-sm text-leif-charcoal/60 mb-4">Сколько готов потратить сегодня?</p>
-                <div class="flex gap-3 flex-wrap">
-                    <button class="budget-btn bg-leif-sand/30 hover:bg-leif-sand/50 px-6 py-2 rounded-full text-sm transition" data-budget="100">~100 ₽</button>
-                    <button class="budget-btn bg-leif-sand/30 hover:bg-leif-sand/50 px-6 py-2 rounded-full text-sm transition" data-budget="200">~200 ₽</button>
-                    <button class="budget-btn bg-leif-sand/30 hover:bg-leif-sand/50 px-6 py-2 rounded-full text-sm transition" data-budget="300">~300 ₽</button>
-                    <button class="budget-btn bg-leif-sand/30 hover:bg-leif-sand/50 px-6 py-2 rounded-full text-sm transition" data-budget="500">~500 ₽</button>
-                </div>
-                <div class="mt-4 flex gap-2">
-                    <input type="number" id="custom-budget" placeholder="Своя сумма" class="flex-1 border-b border-leif-sand/30 py-2 focus:outline-none focus:border-leif-clay transition" />
-                    <button id="custom-budget-btn" class="bg-leif-charcoal text-white px-4 py-2 rounded-full text-sm hover:bg-leif-charcoal/80 transition">Ок</button>
-                </div>
-            </div>
-
-            <!-- Шаг 2: Результат -->
-            <div id="step-result" class="hidden">
-                <div class="text-center">
-                    <div id="surprise-image" class="w-full h-48 rounded-lg bg-leif-sand/20 mb-4 bg-cover bg-center"></div>
-                    <h4 id="surprise-title" class="text-xl font-serif italic mb-1">Название</h4>
-                    <p id="surprise-price" class="text-sm text-leif-charcoal/60">Цена</p>
-                    <a id="surprise-url" href="#" target="_blank" class="inline-block mt-4 text-leif-clay hover:underline text-sm">
-                        <i class="fa-regular fa-link mr-1"></i> Где купить
-                    </a>
-                    <button id="surprise-again" class="mt-6 text-leif-charcoal/40 hover:text-leif-charcoal text-sm transition">
-                        <i class="fa-regular fa-rotate mr-1"></i> Выбрать другой
-                    </button>
-                </div>
+            <div class="text-center">
+                <div id="surprise-image" class="w-full h-64 rounded-lg bg-leif-sand/20 mb-4 bg-cover bg-center"></div>
+                <h4 id="surprise-title" class="text-xl font-serif italic mb-2">Название</h4>
+                <p id="surprise-phrase" class="text-sm text-leif-charcoal/50 italic">Фраза</p>
             </div>
         </div>
     </div>
@@ -234,50 +205,48 @@
             { date: 11, month: 6, year: 2026, label: "🎂 3 года нашим прекрасным отношениям" }
         ];
 
-        // ----- МАССИВ МЕЛОЧЕЙ ДЛЯ СЮРПРИЗА (ЗАПОЛНИ СВОИМИ) -----
+        // ----- МАССИВ МЕЛОЧЕЙ ДЛЯ СЮРПРИЗА -----
         const smallGifts = [
             {
                 title: "Мармеладные мишки",
-                price: "150 ₽",
-                image: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&q=80&w=300",
-                url: "https://www.ozon.ru/product/marmeladnye-mishki-..."
+                image: "https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&q=80&w=400"
             },
             {
                 title: "Маленькая шоколадка с орешками",
-                price: "120 ₽",
-                image: "https://images.unsplash.com/photo-1549007953-2e2e3a1c6c1e?auto=format&fit=crop&q=80&w=300",
-                url: "https://www.ozon.ru/product/shokolad-s-oreshkami-..."
+                image: "https://images.unsplash.com/photo-1549007953-2e2e3a1c6c1e?auto=format&fit=crop&q=80&w=400"
             },
             {
                 title: "Блокнот в цветочек",
-                price: "250 ₽",
-                image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?auto=format&fit=crop&q=80&w=300",
-                url: "https://www.ozon.ru/product/bloknot-v-tochechku-..."
+                image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?auto=format&fit=crop&q=80&w=400"
             },
             {
                 title: "Мягкий брелок-котик",
-                price: "200 ₽",
-                image: "https://images.unsplash.com/photo-1591561954557-26941269f5e6?auto=format&fit=crop&q=80&w=300",
-                url: "https://www.ozon.ru/product/brelok-myagkiy-kotik-..."
+                image: "https://images.unsplash.com/photo-1591561954557-26941269f5e6?auto=format&fit=crop&q=80&w=400"
             },
             {
                 title: "Кружка с сердечком",
-                price: "280 ₽",
-                image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&q=80&w=300",
-                url: "https://www.ozon.ru/product/kruzhka-s-serdechkom-..."
+                image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&q=80&w=400"
             },
             {
                 title: "Мыло ручной работы",
-                price: "180 ₽",
-                image: "https://images.unsplash.com/photo-1600857062241-98e5dba7f214?auto=format&fit=crop&q=80&w=300",
-                url: "https://www.ozon.ru/product/mylo-ruchnoy-raboty-..."
+                image: "https://images.unsplash.com/photo-1600857062241-98e5dba7f214?auto=format&fit=crop&q=80&w=400"
             },
             {
                 title: "Пакетик вкусного чая",
-                price: "100 ₽",
-                image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&q=80&w=300",
-                url: "https://www.ozon.ru/product/chay-v-paketikah-..."
+                image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&q=80&w=400"
             }
+        ];
+
+        // ----- МИЛЫЕ ФРАЗЫ ДЛЯ СЮРПРИЗОВ -----
+        const cutePhrases = [
+            "Ты — моё самое любимое чудо 🥰",
+            "Спасибо, что ты есть у меня 💕",
+            "Ты делаешь мои дни ярче ✨",
+            "Каждый день с тобой — праздник 🌸",
+            "Ты — моя самая большая радость 💖",
+            "Ты у меня самый лучший ❤️",
+            "С тобой даже дождик кажется тёплым ☀️",
+            "Ты — моя самая любимая сказка 🌙"
         ];
 
         // ----- РАБОТА С GOOGLE SHEETS -----
@@ -571,49 +540,34 @@
         // ----- КНОПКА СИНХРОНИЗАЦИИ -----
         document.getElementById('sync-btn').addEventListener('click', syncData);
 
-        // ----- 🎁 ЛОГИКА СЮРПРИЗА -----
+        // ----- 🎁 ЛОГИКА СЮРПРИЗА (без бюджета) -----
         const surpriseModal = document.getElementById('surprise-modal');
-        const stepBudget = document.getElementById('step-budget');
-        const stepResult = document.getElementById('step-result');
         const surpriseImage = document.getElementById('surprise-image');
         const surpriseTitle = document.getElementById('surprise-title');
-        const surprisePrice = document.getElementById('surprise-price');
-        const surpriseUrl = document.getElementById('surprise-url');
+        const surprisePhrase = document.getElementById('surprise-phrase');
 
-        function getRandomGift(budget) {
-            const filtered = smallGifts.filter(g => {
-                const priceNum = parseInt(g.price.replace(/[^0-9]/g, ''));
-                return priceNum <= budget;
-            });
-            
-            if (filtered.length === 0) {
-                return null;
-            }
-            
-            return filtered[Math.floor(Math.random() * filtered.length)];
+        function getRandomGift() {
+            return smallGifts[Math.floor(Math.random() * smallGifts.length)];
         }
 
-        function showSurprise(gift) {
-            if (!gift) {
-                surpriseTitle.textContent = '😅 Ничего не найдено';
-                surprisePrice.textContent = 'Попробуй увеличить бюджет';
-                surpriseImage.style.backgroundImage = 'none';
-                surpriseUrl.href = '#';
-                return;
-            }
+        function getRandomPhrase() {
+            return cutePhrases[Math.floor(Math.random() * cutePhrases.length)];
+        }
+
+        function showSurprise() {
+            const gift = getRandomGift();
+            const phrase = getRandomPhrase();
             
             surpriseTitle.textContent = gift.title;
-            surprisePrice.textContent = gift.price;
             surpriseImage.style.backgroundImage = `url(${gift.image})`;
-            surpriseUrl.href = gift.url;
+            surprisePhrase.textContent = phrase;
         }
 
         // Открыть модальное окно
         document.getElementById('surprise-btn').addEventListener('click', () => {
             surpriseModal.classList.remove('hidden');
             surpriseModal.style.display = 'flex';
-            stepBudget.classList.remove('hidden');
-            stepResult.classList.add('hidden');
+            showSurprise();
         });
 
         // Закрыть модальное окно
@@ -628,37 +582,6 @@
                 surpriseModal.classList.add('hidden');
                 surpriseModal.style.display = 'none';
             }
-        });
-
-        // Кнопки бюджета
-        document.querySelectorAll('.budget-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const budget = parseInt(btn.dataset.budget);
-                const gift = getRandomGift(budget);
-                stepBudget.classList.add('hidden');
-                stepResult.classList.remove('hidden');
-                showSurprise(gift);
-            });
-        });
-
-        // Своя сумма
-        document.getElementById('custom-budget-btn').addEventListener('click', () => {
-            const budget = parseInt(document.getElementById('custom-budget').value);
-            if (!budget || budget <= 0) {
-                alert('Введи сумму больше 0');
-                return;
-            }
-            const gift = getRandomGift(budget);
-            stepBudget.classList.add('hidden');
-            stepResult.classList.remove('hidden');
-            showSurprise(gift);
-        });
-
-        // Кнопка "Выбрать другой"
-        document.getElementById('surprise-again').addEventListener('click', () => {
-            stepBudget.classList.remove('hidden');
-            stepResult.classList.add('hidden');
-            document.getElementById('custom-budget').value = '';
         });
 
         // ----- ЗАПУСК -----
