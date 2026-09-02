@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wishly — Мои желания</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'leif-cream': '#fdfaf7',
+                        'leif-sage': '#9db1a1',
+                        'leif-sand': '#e5d1c5',
+                        'leif-clay': '#b4846c',
+                        'leif-charcoal': '#333333',
+                    },
+                    fontFamily: {
+                        serif: ['Cormorant Garamond', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+    
+    <style>
+        body {
+            background-color: #fdfaf7;
+            color: #333333;
+            scroll-behavior: smooth;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+        
+        .fulfilled-card {
+            filter: grayscale(0.4) opacity(0.8);
+            transition: all 0.4s ease;
+        }
+        
+        .wish-card {
+            transition: all 0.3s ease;
+        }
+        
+        .wish-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .fulfill-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .wish-card:hover .fulfill-btn {
+            opacity: 1;
+        }
+        
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #fdfaf7; }
+        ::-webkit-scrollbar-thumb { background: #e5d1c5; border-radius: 4px; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- ШАПКА -->
+    <header class="w-full py-6 px-6 md:px-12 flex justify-between items-center bg-leif-cream border-b border-leif-sand/30 sticky top-0 z-50">
+        <h1 class="text-3xl md:text-4xl font-serif italic tracking-tight text-leif-charcoal">Wishly</h1>
+        <nav class="hidden md:flex gap-8 text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/60 font-medium">
+            <a href="#wishlist" class="hover:text-leif-clay transition-colors">Желания</a>
+            <a href="#calendar" class="hover:text-leif-clay transition-colors">Календарь</a>
+            <a href="#fulfilled" class="hover:text-leif-clay transition-colors">Исполненные</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <button id="sync-btn" class="text-leif-charcoal/40 hover:text-leif-clay transition-colors text-lg" title="Синхронизировать">
+                <i class="fa-solid fa-rotate"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main class="max-w-7xl mx-auto px-6 md:px-12 py-12">
+
+        <section id="wishlist" class="mb-24">
+            <div class="flex justify-between items-end mb-12 border-b border-leif-sand/40 pb-4">
+                <h3 class="text-3xl md:text-4xl font-serif italic">Мои желания</h3>
+                <span class="text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/40" id="wish-count">Загрузка...</span>
+            </div>
+            <div id="wish-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12"></div>
+        </section>
+
+        <section id="calendar" class="mb-24 grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+            <div class="lg:col-span-1">
+                <h3 class="text-3xl md:text-4xl font-serif italic mb-4">События</h3>
+                <p class="text-leif-charcoal/60 text-sm font-light leading-relaxed mb-8">
+                    Ближайшие даты, к которым можно приурочить подарки
+                </p>
+                <div id="events-list" class="space-y-4"></div>
+            </div>
+
+            <div class="lg:col-span-2 bg-white p-6 md:p-10 rounded-sm shadow-sm border border-leif-sand/20">
+                <div class="flex justify-between items-center mb-8">
+                    <button id="prev-month" class="text-leif-charcoal/30 hover:text-leif-charcoal transition">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h4 class="text-xl md:text-2xl font-serif italic" id="calendar-month">Сентябрь 2026</h4>
+                    <button id="next-month" class="text-leif-charcoal/30 hover:text-leif-charcoal transition">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="calendar-grid text-center text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/30 font-medium mb-4">
+                    <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+                </div>
+                
+                <div id="calendar-days" class="calendar-grid text-center gap-y-2"></div>
+            </div>
+        </section>
+
+        <section id="fulfilled" class="mb-24">
+            <div class="flex justify-between items-end mb-12 border-b border-leif-sand/40 pb-4">
+                <h3 class="text-3xl md:text-4xl font-serif italic text-leif-charcoal/70">Исполненные</h3>
+                <span class="text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/30" id="completed-count">0</span>
+            </div>
+            <div id="completed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-leif-sand/30 py-16 text-center">
+        <p class="text-[10px] text-leif-charcoal/30 uppercase tracking-[0.15em]">
+            © 2026 · Сделано с любовью ❤️
+        </p>
+    </footer>
+
+    <script>
+        // ⚙️ НАСТРОЙКА — ВСТАВЬ СВОЙ URL
+        const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzZ4JbCqyavm5AdfhnvM-EEQVea_uaP67R9dBp1CS07CTZJyz9HQJt8vwuVeKKBucU1QQ/exec';
+
+        // ----- ОСНОВНЫЕ ДАННЫЕ -----
+        const now = new Date();
+        let currentMonth = now.getMonth();
+        let currentYear = now.getFullYear();
+        let allWishes = [];
+        let completedIds = [];
+
+        // ----- СОБЫТИЯ -----
+        const events = [
+            { date: 13, month: 8, year: 2026, label: "День программиста (кстати, это 256 день в году, 256 = 2 в 8 степени - это количество различных значений, которые можно выразить с помощью одного восьмиразрядного байта) Так то)" },
+            { date: 31, month: 11, year: 2026, label: "🌲 Новый год" },
+            { date: 11, month: 12, year: 2026, label: "День спасибо (Спасибо, что ты всегда рядом 🥰)" },
+            { date: 14, month: 1, year: 2026, label: "❤️ День всех влюбленных" },
+            { date: 8, month: 2, year: 2026, label: "🌸 8 марта" },
+            { date: 23, month: 3, year: 2026, label: "🎁 День рождения" },
+            { date: 11, month: 6, year: 2026, label: "🎂 3 года нашим прекрасным отношениям" }
+        ];
+
+        // ----- РАБОТА С GOOGLE SHEETS -----
+        async function loadFromSheets() {
+            try {
+                const response = await fetch(SHEETS_API_URL);
+                if (!response.ok) throw new Error('Ошибка загрузки');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Ошибка:', data.error);
+                    return false;
+                }
+                
+                allWishes = Array.isArray(data) ? data : [];
+                
+                const savedCompleted = localStorage.getItem('completedWishes');
+                completedIds = savedCompleted ? JSON.parse(savedCompleted) : [];
+                
+                return true;
+            } catch (e) {
+                console.error('Ошибка загрузки из Google Sheets:', e);
+                const localData = localStorage.getItem('myWishes_backup');
+                if (localData) {
+                    allWishes = JSON.parse(localData);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        async function saveToSheets(wishes) {
+            try {
+                await fetch(SHEETS_API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(wishes)
+                });
+                localStorage.setItem('myWishes_backup', JSON.stringify(wishes));
+                return true;
+            } catch (e) {
+                console.error('Ошибка сохранения:', e);
+                localStorage.setItem('myWishes_backup', JSON.stringify(wishes));
+                return false;
+            }
+        }
+
+        // ----- РАБОТА С ДАННЫМИ -----
+        function getWishes() { return allWishes; }
+        function getCompleted() { return completedIds; }
+        function saveCompleted(completed) {
+            completedIds = completed;
+            localStorage.setItem('completedWishes', JSON.stringify(completed));
+        }
+
+        // ----- РЕНДЕРИНГ ЖЕЛАНИЙ -----
+        function renderWishes() {
+            const grid = document.getElementById('wish-grid');
+            const wishes = getWishes();
+            const completed = getCompleted();
+            const activeWishes = wishes.filter(w => !completed.includes(w.id));
+
+            document.getElementById('wish-count').textContent = `${activeWishes.length} желаний`;
+
+            if (activeWishes.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center text-leif-charcoal/30 py-12 text-sm uppercase tracking-[0.15em]">
+                        Все желания исполнены! 🎉
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = activeWishes.map(w => `
+                <div class="wish-card group">
+                    <div class="h-[320px] md:h-[400px] overflow-hidden rounded-sm bg-white mb-4 relative">
+                        <img 
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                            src="${w.image}" 
+                            alt="${w.title}"
+                            loading="lazy"
+                            onerror="this.src='https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&q=80&w=800'"
+                        />
+                        <button 
+                            onclick="fulfillWish(this)" 
+                            class="fulfill-btn absolute top-4 right-4 bg-white/90 p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-leif-sage hover:text-white"
+                            data-id="${w.id}"
+                        >
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <a href="${w.url}" target="_blank" class="hover:text-leif-clay transition-colors">
+                                <h4 class="text-xl font-serif italic mb-1 hover:underline">${w.title}</h4>
+                            </a>
+                            <p class="text-sm text-leif-charcoal/60 uppercase tracking-widest">${w.brand} • ${w.price}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ----- РЕНДЕРИНГ ВЫПОЛНЕННЫХ -----
+        function renderCompleted() {
+            const grid = document.getElementById('completed-grid');
+            const wishes = getWishes();
+            const completedIds = getCompleted();
+            const completedWishes = wishes.filter(w => completedIds.includes(w.id));
+
+            document.getElementById('completed-count').textContent = 
+                completedWishes.length > 0 ? `Мур❤️` : '0';
+
+            if (completedWishes.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center text-leif-charcoal/30 py-12 text-sm uppercase tracking-[0.15em]">
+                        Пока нет исполненных желаний
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = completedWishes.map(w => `
+                <div class="fulfilled-card">
+                    <div class="h-[240px] overflow-hidden rounded-sm bg-white mb-3 relative">
+                        <img 
+                            class="w-full h-full object-cover" 
+                            src="${w.image}" 
+                            alt="${w.title}"
+                            loading="lazy"
+                            onerror="this.src='https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&q=80&w=800'"
+                        />
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-serif italic mb-0.5 text-leif-charcoal/70">${w.title}</h4>
+                        <p class="text-xs text-leif-charcoal/40 uppercase tracking-widest">${w.brand} • ${w.price}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ----- КАЛЕНДАРЬ -----
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-days');
+            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            document.getElementById('calendar-month').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+            let html = '';
+            for (let i = 0; i < startOffset; i++) {
+                html += `<div></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isEvent = events.some(e => e.date === day && e.month === currentMonth);
+                const isToday = (day === now.getDate() && currentMonth === now.getMonth() && currentYear === now.getFullYear());
+                
+                let classes = 'py-3 text-sm rounded-full transition-colors';
+                if (isEvent) {
+                    classes += ' relative flex flex-col items-center';
+                    html += `
+                        <div class="${classes}">
+                            <span class="z-10 ${isToday ? 'font-bold text-leif-clay' : ''}">${day}</span>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-8 h-8 rounded-full border-2 border-leif-clay"></div>
+                            </div>
+                        </div>
+                    `;
+                } else if (isToday) {
+                    html += `<div class="${classes} font-bold text-leif-charcoal">${day}</div>`;
+                } else {
+                    html += `<div class="${classes} text-leif-charcoal/50">${day}</div>`;
+                }
+            }
+
+            grid.innerHTML = html;
+            renderEvents();
+        }
+        // ----- РЕНДЕРИНГ СОБЫТИЙ (упрощённый, без года) -----
+        function renderEvents() {
+            const container = document.getElementById('events-list');
+            const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
+
+            // Определяем текущий и следующий месяц (из календаря)
+            const currentMonthNow = currentMonth;
+            const currentYearNow = currentYear;
+            
+            // Фильтруем события: только на текущий и следующий месяц (без учёта года)
+            const upcomingEvents = events.filter(e => {
+                // Если событие в текущем месяце
+                if (e.month === currentMonthNow) return true;
+                // Если событие в следующем месяце
+                if (e.month === (currentMonthNow + 1) % 12) return true;
+                return false;
+            });
+
+            // Сортируем события по дате
+            const sortedEvents = upcomingEvents.sort((a, b) => a.month - b.month || a.date - b.date);
+
+            if (sortedEvents.length === 0) {
+                container.innerHTML = `
+                    <div class="text-leif-charcoal/40 text-sm font-light italic">
+                        Нет событий в ближайшие 2 месяца
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = sortedEvents.map(e => `
+                <div class="flex items-center gap-4">
+                    <div class="w-2 h-2 rounded-full bg-leif-clay"></div>
+                    <div>
+                        <p class="text-[10px] font-medium uppercase tracking-[0.15em] text-leif-charcoal/50">${e.date} ${monthNames[e.month]}</p>
+                        <p class="font-serif italic text-lg">${e.label}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        // // ----- РЕНДЕРИНГ СОБЫТИЙ (только ближайшие 2 месяца) -----
+        // function renderEvents() {
+        //     const container = document.getElementById('events-list');
+        //     const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
+
+        //     // Определяем текущий и следующий месяц
+        //     const currentMonthNow = new Date().getMonth();
+        //     const currentYearNow = new Date().getFullYear();
+            
+        //     // Фильтруем события: только на текущий и следующий месяц
+        //     const upcomingEvents = events.filter(e => {
+        //         // Если событие в текущем месяце
+        //         if (e.month === currentMonthNow && e.year === currentYearNow) return true;
+        //         // Если событие в следующем месяце
+        //         if (e.month === (currentMonthNow + 1) % 12 && e.year === currentYearNow) return true;
+        //         // Если событие в январе следующего года (когда текущий месяц декабрь)
+        //         if (currentMonthNow === 11 && e.month === 0 && e.year === currentYearNow + 1) return true;
+        //         return false;
+        //     });
+
+        //     // Сортируем события по дате
+        //     const sortedEvents = upcomingEvents.sort((a, b) => a.month - b.month || a.date - b.date);
+
+        //     if (sortedEvents.length === 0) {
+        //         container.innerHTML = `
+        //             <div class="text-leif-charcoal/40 text-sm font-light italic">
+        //                 Нет событий в ближайшие 2 месяца
+        //             </div>
+        //         `;
+        //         return;
+        //     }
+
+        //     container.innerHTML = sortedEvents.map(e => `
+        //         <div class="flex items-center gap-4">
+        //             <div class="w-2 h-2 rounded-full bg-leif-clay"></div>
+        //             <div>
+        //                 <p class="text-[10px] font-medium uppercase tracking-[0.15em] text-leif-charcoal/50">${e.date} ${monthNames[e.month]}</p>
+        //                 <p class="font-serif italic text-lg">${e.label}</p>
+        //             </div>
+        //         </div>
+        //     `).join('');
+        // }
+        // // ----- РЕНДЕРИНГ СОБЫТИЙ -----
+        // function renderEvents() {
+        //     const container = document.getElementById('events-list');
+        //     const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
+
+        //     const sortedEvents = [...events].sort((a, b) => a.month - b.month || a.date - b.date);
+
+        //     container.innerHTML = sortedEvents.map(e => `
+        //         <div class="flex items-center gap-4">
+        //             <div class="w-2 h-2 rounded-full bg-leif-clay"></div>
+        //             <div>
+        //                 <p class="text-[10px] font-medium uppercase tracking-[0.15em] text-leif-charcoal/50">${e.date} ${monthNames[e.month]}</p>
+        //                 <p class="font-serif italic text-lg">${e.label}</p>
+        //             </div>
+        //         </div>
+        //     `).join('');
+        // }
+
+        // ----- ЛОГИКА "ИСПОЛНЕНО" -----
+        async function fulfillWish(btn) {
+            const card = btn.closest('.wish-card');
+            const id = parseInt(btn.dataset.id);
+            
+            const completed = getCompleted();
+            if (!completed.includes(id)) {
+                completed.push(id);
+                saveCompleted(completed);
+            }
+
+            card.classList.add('fulfilled-card');
+            btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
+            btn.classList.add('bg-leif-clay', 'text-white', 'opacity-100');
+            btn.classList.remove('hover:bg-leif-sage');
+            
+            const wishes = getWishes();
+            const wishesWithStatus = wishes.map(w => ({
+                ...w,
+                completed: completed.includes(w.id) ? 'yes' : 'no'
+            }));
+            await saveToSheets(wishesWithStatus);
+            
+            setTimeout(() => {
+                renderWishes();
+                renderCompleted();
+            }, 400);
+        }
+
+        // ----- СИНХРОНИЗАЦИЯ -----
+        async function syncData() {
+            const syncBtn = document.getElementById('sync-btn');
+            syncBtn.classList.add('fa-spin');
+            
+            const success = await loadFromSheets();
+            
+            syncBtn.classList.remove('fa-spin');
+            
+            if (success) {
+                renderWishes();
+                renderCompleted();
+                const count = document.getElementById('wish-count');
+                const originalText = count.textContent;
+                count.textContent = 'Синхронизировано';
+                setTimeout(() => {
+                    count.textContent = originalText;
+                }, 2000);
+            } else {
+                alert('Не удалось синхронизировать. Проверьте интернет-соединение и URL.');
+            }
+        }
+
+        // ----- ПЕРЕКЛЮЧЕНИЕ МЕСЯЦЕВ -----
+        document.getElementById('prev-month').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+
+        document.getElementById('next-month').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+
+        // ----- КНОПКА СИНХРОНИЗАЦИИ -----
+        document.getElementById('sync-btn').addEventListener('click', syncData);
+
+        // ----- ЗАПУСК -----
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('wish-count').textContent = 'Загрузка...';
+            await loadFromSheets();
+            renderWishes();
+            renderCompleted();
+            renderCalendar();
+            renderEvents();
+        });
+    </script>
+
+</body>
+</html>
