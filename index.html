@@ -157,14 +157,14 @@
 
     <script>
         // ⚙️ НАСТРОЙКА — ВСТАВЬ СВОЙ URL
-        const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzZ4JbCqyavm5AdfhnvM-EEQVea_uaP67R9dBp1CS07CTZJyz9HQJt8vwuVeKKBucU1QQ/exec';
+        const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxTjSSHPMwFfoQy3YqEexj0reNfrxy4bcjYi1_-zi_8jSybx5vBhKE7qMzjrtjRktYg/exec';
 
         // ----- ОСНОВНЫЕ ДАННЫЕ -----
         const now = new Date();
         let currentMonth = now.getMonth();
         let currentYear = now.getFullYear();
         let allWishes = [];
-        let completedIds = [];
+        //let completedIds = [];
 
         // ----- СОБЫТИЯ -----
         const events = [
@@ -191,8 +191,8 @@
                 
                 allWishes = Array.isArray(data) ? data : [];
                 
-                const savedCompleted = localStorage.getItem('completedWishes');
-                completedIds = savedCompleted ? JSON.parse(savedCompleted) : [];
+                //const savedCompleted = localStorage.getItem('completedWishes');
+                //completedIds = savedCompleted ? JSON.parse(savedCompleted) : [];
                 
                 return true;
             } catch (e) {
@@ -225,11 +225,17 @@
 
         // ----- РАБОТА С ДАННЫМИ -----
         function getWishes() { return allWishes; }
-        function getCompleted() { return completedIds; }
-        function saveCompleted(completed) {
-            completedIds = completed;
-            localStorage.setItem('completedWishes', JSON.stringify(completed));
+        //function getCompleted() { return completedIds; }
+        function getCompleted() {
+            // Возвращаем ID желаний, у которых completed === 'yes'
+            return allWishes
+                .filter(w => w.completed === 'yes' || w.completed === true)
+                .map(w => w.id);
         }
+        // function saveCompleted(completed) {
+        //     completedIds = completed;
+        //     localStorage.setItem('completedWishes', JSON.stringify(completed));
+        // }
 
         // ----- РЕНДЕРИНГ ЖЕЛАНИЙ -----
         function renderWishes() {
@@ -463,29 +469,55 @@
             const card = btn.closest('.wish-card');
             const id = parseInt(btn.dataset.id);
             
-            const completed = getCompleted();
-            if (!completed.includes(id)) {
-                completed.push(id);
-                saveCompleted(completed);
-            }
-
+            // Находим желание в массиве
+            const wishIndex = allWishes.findIndex(w => w.id === id);
+            if (wishIndex === -1) return;
+            
+            // Меняем статус на 'yes'
+            allWishes[wishIndex].completed = 'yes';
+            
+            // Сохраняем в Google Sheets
+            await saveToSheets(allWishes);
+            
+            // Визуальный эффект
             card.classList.add('fulfilled-card');
             btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
             btn.classList.add('bg-leif-clay', 'text-white', 'opacity-100');
             btn.classList.remove('hover:bg-leif-sage');
             
-            const wishes = getWishes();
-            const wishesWithStatus = wishes.map(w => ({
-                ...w,
-                completed: completed.includes(w.id) ? 'yes' : 'no'
-            }));
-            await saveToSheets(wishesWithStatus);
-            
+            // Перерисовываем
             setTimeout(() => {
                 renderWishes();
                 renderCompleted();
             }, 400);
         }
+        // async function fulfillWish(btn) {
+        //     const card = btn.closest('.wish-card');
+        //     const id = parseInt(btn.dataset.id);
+            
+        //     const completed = getCompleted();
+        //     if (!completed.includes(id)) {
+        //         completed.push(id);
+        //         saveCompleted(completed);
+        //     }
+
+        //     card.classList.add('fulfilled-card');
+        //     btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
+        //     btn.classList.add('bg-leif-clay', 'text-white', 'opacity-100');
+        //     btn.classList.remove('hover:bg-leif-sage');
+            
+        //     const wishes = getWishes();
+        //     const wishesWithStatus = wishes.map(w => ({
+        //         ...w,
+        //         completed: completed.includes(w.id) ? 'yes' : 'no'
+        //     }));
+        //     await saveToSheets(wishesWithStatus);
+            
+        //     setTimeout(() => {
+        //         renderWishes();
+        //         renderCompleted();
+        //     }, 400);
+        // }
 
         // ----- СИНХРОНИЗАЦИЯ -----
         async function syncData() {
