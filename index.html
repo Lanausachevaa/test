@@ -413,29 +413,28 @@
                 .map(w => w.id);
         }
 
-        // ----- РЕНДЕРИНГ ЖЕЛАНИЙ -----
         function renderWishes() {
             const grid = document.getElementById('wish-grid');
             const wishes = getWishes();
             const completed = getCompleted();
             const activeWishes = wishes.filter(w => !completed.includes(w.id));
-
+        
             document.getElementById('wish-count').textContent = `${activeWishes.length} желаний`;
-
+        
             if (activeWishes.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full text-center text-leif-charcoal/30 py-12 text-sm uppercase tracking-[0.15em]">
-                        Все желания исполнены! 
+                        Все желания исполнены! 🎉
                     </div>
                 `;
                 return;
             }
-
+        
             grid.innerHTML = activeWishes.map(w => `
                 <div class="wish-card group">
                     <div class="h-[320px] md:h-[400px] overflow-hidden rounded-sm bg-white mb-4 relative">
                         <img 
-                            class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700" 
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                             src="${w.image}" 
                             alt="${w.title}"
                             loading="lazy"
