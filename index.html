@@ -52,11 +52,6 @@
             grid-template-columns: repeat(7, 1fr);
         }
         
-        .fulfilled-card {
-            filter: grayscale(0.4) opacity(0.8);
-            transition: all 0.4s ease;
-        }
-        
         .wish-card {
             transition: all 0.3s ease;
         }
@@ -81,6 +76,67 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #fdfaf7; }
         ::-webkit-scrollbar-thumb { background: #e5d1c5; border-radius: 4px; }
+
+        /* ===== ИСПОЛНЕННЫЕ КАРТОЧКИ — ЗОЛОТЫЕ И СИЯЮЩИЕ ===== */
+        .fulfilled-card {
+            filter: none;
+            opacity: 1;
+            transition: all 0.4s ease;
+            
+            border: 2px solid #d4af37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), 0 4px 15px rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            background: linear-gradient(145deg, #ffffff, #fdf8f0);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fulfilled-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.03), transparent 60%);
+            pointer-events: none;
+        }
+
+        .fulfilled-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3), 0 8px 25px rgba(212, 175, 55, 0.15);
+        }
+
+        /* Золотое сердечко на картинке */
+        .fulfilled-card .card-image-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .fulfilled-card .card-image-wrapper::after {
+            content: '💛';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 24px;
+            opacity: 0.9;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+            animation: sparkle 2.5s ease-in-out infinite;
+        }
+
+        .fulfilled-card .card-title {
+            color: #8B7A3A;
+        }
+
+        .fulfilled-card .card-brand {
+            color: #b8a040;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+            50% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+        }
     </style>
 </head>
 <body class="font-sans antialiased">
@@ -139,9 +195,12 @@
             </div>
         </section>
 
+        <!-- ===== ИСПОЛНЕННЫЕ (с золотым сиянием) ===== -->
         <section id="fulfilled" class="mb-24">
             <div class="flex justify-between items-end mb-12 border-b border-leif-sand/40 pb-4">
-                <h3 class="text-3xl md:text-4xl font-serif italic text-leif-charcoal/70">Исполненные</h3>
+                <h3 class="text-3xl md:text-4xl font-serif italic text-leif-charcoal/70">
+                    Исполненные <span class="text-[#d4af37]">✨</span>
+                </h3>
                 <span class="text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/30" id="completed-count">0</span>
             </div>
             <div id="completed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"></div>
@@ -164,7 +223,6 @@
         let currentMonth = now.getMonth();
         let currentYear = now.getFullYear();
         let allWishes = [];
-        //let completedIds = [];
 
         // ----- СОБЫТИЯ -----
         const events = [
@@ -192,10 +250,6 @@
                 }
                 
                 allWishes = Array.isArray(data) ? data : [];
-                
-                //const savedCompleted = localStorage.getItem('completedWishes');
-                //completedIds = savedCompleted ? JSON.parse(savedCompleted) : [];
-                
                 return true;
             } catch (e) {
                 console.error('Ошибка загрузки из Google Sheets:', e);
@@ -227,17 +281,12 @@
 
         // ----- РАБОТА С ДАННЫМИ -----
         function getWishes() { return allWishes; }
-        //function getCompleted() { return completedIds; }
+        
         function getCompleted() {
-            // Возвращаем ID желаний, у которых completed === 'yes'
             return allWishes
                 .filter(w => w.completed === 'yes' || w.completed === true)
                 .map(w => w.id);
         }
-        // function saveCompleted(completed) {
-        //     completedIds = completed;
-        //     localStorage.setItem('completedWishes', JSON.stringify(completed));
-        // }
 
         // ----- РЕНДЕРИНГ ЖЕЛАНИЙ -----
         function renderWishes() {
@@ -287,7 +336,7 @@
             `).join('');
         }
 
-        // ----- РЕНДЕРИНГ ВЫПОЛНЕННЫХ -----
+        // ----- РЕНДЕРИНГ ВЫПОЛНЕННЫХ (ЗОЛОТЫЕ И СИЯЮЩИЕ) -----
         function renderCompleted() {
             const grid = document.getElementById('completed-grid');
             const wishes = getWishes();
@@ -295,31 +344,35 @@
             const completedWishes = wishes.filter(w => completedIds.includes(w.id));
 
             document.getElementById('completed-count').textContent = 
-                completedWishes.length > 0 ? `Мур❤️` : '0';
+                completedWishes.length > 0 ? `Благодарна за ${completedWishes.length} 💛` : '0';
 
             if (completedWishes.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full text-center text-leif-charcoal/30 py-12 text-sm uppercase tracking-[0.15em]">
-                        Пока нет исполненных желаний
+                        Пока нет исполненных желаний 🤍
                     </div>
                 `;
                 return;
             }
 
             grid.innerHTML = completedWishes.map(w => `
-                <div class="fulfilled-card">
-                    <div class="h-[240px] overflow-hidden rounded-sm bg-white mb-3 relative">
+                <div class="fulfilled-card wish-card">
+                    <div class="card-image-wrapper">
                         <img 
-                            class="w-full h-full object-cover" 
+                            class="w-full aspect-square object-cover rounded-t-lg" 
                             src="${w.image}" 
                             alt="${w.title}"
                             loading="lazy"
                             onerror="this.src='https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&q=80&w=800'"
                         />
                     </div>
-                    <div>
-                        <h4 class="text-lg font-serif italic mb-0.5 text-leif-charcoal/70">${w.title}</h4>
-                        <p class="text-xs text-leif-charcoal/40 uppercase tracking-widest">${w.brand} • ${w.price}</p>
+                    <div class="p-3">
+                        <div class="card-brand text-xs uppercase tracking-widest">${w.brand || '✨ Подарок'}</div>
+                        <h4 class="card-title text-lg font-serif italic mb-0.5">${w.title}</h4>
+                        <p class="text-sm text-leif-charcoal/50">${w.price}</p>
+                        <div class="mt-2 text-xs text-[#d4af37]">
+                            <span class="inline-block animate-pulse">💛</span> Спасибо!
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -366,25 +419,20 @@
             grid.innerHTML = html;
             renderEvents();
         }
-        // ----- РЕНДЕРИНГ СОБЫТИЙ (упрощённый, без года) -----
+
+        // ----- РЕНДЕРИНГ СОБЫТИЙ -----
         function renderEvents() {
             const container = document.getElementById('events-list');
             const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
 
-            // Определяем текущий и следующий месяц (из календаря)
             const currentMonthNow = currentMonth;
-            const currentYearNow = currentYear;
             
-            // Фильтруем события: только на текущий и следующий месяц (без учёта года)
             const upcomingEvents = events.filter(e => {
-                // Если событие в текущем месяце
                 if (e.month === currentMonthNow) return true;
-                // Если событие в следующем месяце
                 if (e.month === (currentMonthNow + 1) % 12) return true;
                 return false;
             });
 
-            // Сортируем события по дате
             const sortedEvents = upcomingEvents.sort((a, b) => a.month - b.month || a.date - b.date);
 
             if (sortedEvents.length === 0) {
@@ -406,120 +454,28 @@
                 </div>
             `).join('');
         }
-        // // ----- РЕНДЕРИНГ СОБЫТИЙ (только ближайшие 2 месяца) -----
-        // function renderEvents() {
-        //     const container = document.getElementById('events-list');
-        //     const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
-
-        //     // Определяем текущий и следующий месяц
-        //     const currentMonthNow = new Date().getMonth();
-        //     const currentYearNow = new Date().getFullYear();
-            
-        //     // Фильтруем события: только на текущий и следующий месяц
-        //     const upcomingEvents = events.filter(e => {
-        //         // Если событие в текущем месяце
-        //         if (e.month === currentMonthNow && e.year === currentYearNow) return true;
-        //         // Если событие в следующем месяце
-        //         if (e.month === (currentMonthNow + 1) % 12 && e.year === currentYearNow) return true;
-        //         // Если событие в январе следующего года (когда текущий месяц декабрь)
-        //         if (currentMonthNow === 11 && e.month === 0 && e.year === currentYearNow + 1) return true;
-        //         return false;
-        //     });
-
-        //     // Сортируем события по дате
-        //     const sortedEvents = upcomingEvents.sort((a, b) => a.month - b.month || a.date - b.date);
-
-        //     if (sortedEvents.length === 0) {
-        //         container.innerHTML = `
-        //             <div class="text-leif-charcoal/40 text-sm font-light italic">
-        //                 Нет событий в ближайшие 2 месяца
-        //             </div>
-        //         `;
-        //         return;
-        //     }
-
-        //     container.innerHTML = sortedEvents.map(e => `
-        //         <div class="flex items-center gap-4">
-        //             <div class="w-2 h-2 rounded-full bg-leif-clay"></div>
-        //             <div>
-        //                 <p class="text-[10px] font-medium uppercase tracking-[0.15em] text-leif-charcoal/50">${e.date} ${monthNames[e.month]}</p>
-        //                 <p class="font-serif italic text-lg">${e.label}</p>
-        //             </div>
-        //         </div>
-        //     `).join('');
-        // }
-        // // ----- РЕНДЕРИНГ СОБЫТИЙ -----
-        // function renderEvents() {
-        //     const container = document.getElementById('events-list');
-        //     const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
-
-        //     const sortedEvents = [...events].sort((a, b) => a.month - b.month || a.date - b.date);
-
-        //     container.innerHTML = sortedEvents.map(e => `
-        //         <div class="flex items-center gap-4">
-        //             <div class="w-2 h-2 rounded-full bg-leif-clay"></div>
-        //             <div>
-        //                 <p class="text-[10px] font-medium uppercase tracking-[0.15em] text-leif-charcoal/50">${e.date} ${monthNames[e.month]}</p>
-        //                 <p class="font-serif italic text-lg">${e.label}</p>
-        //             </div>
-        //         </div>
-        //     `).join('');
-        // }
 
         // ----- ЛОГИКА "ИСПОЛНЕНО" -----
         async function fulfillWish(btn) {
             const card = btn.closest('.wish-card');
             const id = parseInt(btn.dataset.id);
             
-            // Находим желание в массиве
             const wishIndex = allWishes.findIndex(w => w.id === id);
             if (wishIndex === -1) return;
             
-            // Меняем статус на 'yes'
             allWishes[wishIndex].completed = 'yes';
-            
-            // Сохраняем в Google Sheets
             await saveToSheets(allWishes);
             
-            // Визуальный эффект
             card.classList.add('fulfilled-card');
             btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
             btn.classList.add('bg-leif-clay', 'text-white', 'opacity-100');
             btn.classList.remove('hover:bg-leif-sage');
             
-            // Перерисовываем
             setTimeout(() => {
                 renderWishes();
                 renderCompleted();
             }, 400);
         }
-        // async function fulfillWish(btn) {
-        //     const card = btn.closest('.wish-card');
-        //     const id = parseInt(btn.dataset.id);
-            
-        //     const completed = getCompleted();
-        //     if (!completed.includes(id)) {
-        //         completed.push(id);
-        //         saveCompleted(completed);
-        //     }
-
-        //     card.classList.add('fulfilled-card');
-        //     btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
-        //     btn.classList.add('bg-leif-clay', 'text-white', 'opacity-100');
-        //     btn.classList.remove('hover:bg-leif-sage');
-            
-        //     const wishes = getWishes();
-        //     const wishesWithStatus = wishes.map(w => ({
-        //         ...w,
-        //         completed: completed.includes(w.id) ? 'yes' : 'no'
-        //     }));
-        //     await saveToSheets(wishesWithStatus);
-            
-        //     setTimeout(() => {
-        //         renderWishes();
-        //         renderCompleted();
-        //     }, 400);
-        // }
 
         // ----- СИНХРОНИЗАЦИЯ -----
         async function syncData() {
