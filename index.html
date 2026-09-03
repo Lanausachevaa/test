@@ -425,7 +425,7 @@
             if (activeWishes.length === 0) {
                 grid.innerHTML = `
                     <div class="col-span-full text-center text-leif-charcoal/30 py-12 text-sm uppercase tracking-[0.15em]">
-                        Все желания исполнены! 🎉
+                        Все желания исполнены! 
                     </div>
                 `;
                 return;
@@ -490,4 +490,204 @@
                     </div>
                     <div class="p-3">
                         <div class="card-brand text-xs uppercase tracking-widest">${w.brand || 'Подарок'}</div>
-                        <h4 class="card-title text-lg font-serif italic mb-0.5">
+                        <h4 class="card-title text-lg font-serif italic mb-0.5">${w.title}</h4>
+                        <p class="text-sm text-leif-charcoal/50">${w.price}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ----- КАЛЕНДАРЬ -----
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-days');
+            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            document.getElementById('calendar-month').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+            let html = '';
+            for (let i = 0; i < startOffset; i++) {
+                html += `<div></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isEvent = events.some(e => e.date === day && e.month === currentMonth);
+                const isToday = (day === now.getDate() && currentMonth === now.getMonth() && currentYear === now.getFullYear());
+                
+                let classes = 'py-3 text-sm rounded-full transition-colors';
+                if (isEvent) {
+                    classes += ' relative flex flex-col items-center';
+                    html += `
+                        <div class="${classes}">
+                            <span class="z-10 ${isToday ? 'font-bold text-leif-clay' : ''}">${day}</span>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="w-8 h-8 rounded-full border-2 border-leif-clay"></div>
+                            </div>
+                        </div>
+                    `;
+                } else if (isToday) {
+                    html += `<div class="${classes} font-bold text-leif-charcoal">${day}</div>`;
+                } else {
+                    html += `<div class="${classes} text-leif-charcoal/50">${day}</div>`;
+                }
+            }
+
+            grid.innerHTML = html;
+            renderEvents();
+        }
+
+        // ----- РЕНДЕРИНГ СОБЫТИЙ -----
+        function renderEvents() {
+            const container = document.getElementById('events-list');
+            const monthNames = ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'];
+
+            const currentMonthNow = currentMonth;
+            
+            const upcomingEvents = events.filter(e => {
+                if (e.month === currentMonthNow) return true;
+                if (e.month === (currentMonthNow + 1) % 12) return true;
+                return false;
+            });
+
+            const sortedEvents = upcomingEvents.sort((a, b) => a.month - b.month || a.date - b.date);
+
+            if (sortedEvents.length === 0) {
+                container.innerHTML = `
+                    <div class="text-leif-charcoal/40 text-sm font-light italic">
+                        Нет событий в ближайшие 2 месяца
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = sortedEvents.map(e => `
+                <div class="flex items-center gap-4">
+                    <div class="w-2 h-2 rounded-full bg-leif-clay"></div>
+                    <div>
+                        <p class="text-[10px] font-medium uppercase tracking-[0.15em] text-leif-charcoal/50">${e.date} ${monthNames[e.month]}</p>
+                        <p class="font-serif italic text-lg">${e.label}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ----- ЛОГИКА "ИСПОЛНЕНО" -----
+        async function fulfillWish(btn) {
+            const card = btn.closest('.wish-card');
+            const id = parseInt(btn.dataset.id);
+            
+            const wishIndex = allWishes.findIndex(w => w.id === id);
+            if (wishIndex === -1) return;
+            
+            allWishes[wishIndex].completed = 'yes';
+            await saveToSheets(allWishes);
+            
+            card.classList.add('fulfilled-card');
+            btn.innerHTML = '<i class="fa-solid fa-heart"></i>';
+            btn.classList.add('bg-leif-clay', 'text-white', 'opacity-100');
+            btn.classList.remove('hover:bg-leif-sage');
+            
+            setTimeout(() => {
+                renderWishes();
+                renderCompleted();
+            }, 400);
+        }
+
+        // ----- СИНХРОНИЗАЦИЯ -----
+        async function syncData() {
+            const syncBtn = document.getElementById('sync-btn');
+            syncBtn.classList.add('fa-spin');
+            
+            const success = await loadFromSheets();
+            
+            syncBtn.classList.remove('fa-spin');
+            
+            if (success) {
+                renderWishes();
+                renderCompleted();
+                const count = document.getElementById('wish-count');
+                const originalText = count.textContent;
+                count.textContent = 'Синхронизировано';
+                setTimeout(() => {
+                    count.textContent = originalText;
+                }, 2000);
+            } else {
+                alert('Не удалось синхронизировать. Проверьте интернет-соединение и URL.');
+            }
+        }
+
+        // ----- ПЕРЕКЛЮЧЕНИЕ МЕСЯЦЕВ -----
+        document.getElementById('prev-month').addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+
+        document.getElementById('next-month').addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+
+        // ----- КНОПКА СИНХРОНИЗАЦИИ -----
+        document.getElementById('sync-btn').addEventListener('click', syncData);
+
+        // ----- ПЕРЕКЛЮЧАТЕЛЬ СЕТКИ (2 или 3 колонки) -----
+        const gridToggle2 = document.getElementById('grid-toggle-2');
+        const gridToggle3 = document.getElementById('grid-toggle-3');
+        const wishGrid = document.getElementById('wish-grid');
+
+        function getGridMode() {
+            return localStorage.getItem('wishGridMode') || '3cols';
+        }
+
+        function setGridMode(mode) {
+            localStorage.setItem('wishGridMode', mode);
+            wishGrid.classList.remove('wish-grid-2cols', 'wish-grid-3cols');
+            wishGrid.classList.add(`wish-grid-${mode}`);
+            
+            gridToggle2.classList.toggle('active', mode === '2cols');
+            gridToggle3.classList.toggle('active', mode === '3cols');
+            
+            if (mode === '2cols') {
+                wishGrid.classList.remove('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+                wishGrid.classList.add('grid-cols-2', 'md:grid-cols-2');
+            } else {
+                wishGrid.classList.remove('grid-cols-2');
+                wishGrid.classList.add('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+            }
+            
+            renderWishes();
+        }
+
+        gridToggle2.addEventListener('click', () => {
+            setGridMode('2cols');
+        });
+
+        gridToggle3.addEventListener('click', () => {
+            setGridMode('3cols');
+        });
+
+        // ----- ЗАПУСК -----
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('wish-count').textContent = 'Загрузка...';
+            await loadFromSheets();
+            renderWishes();
+            renderCompleted();
+            renderCalendar();
+            renderEvents();
+            setGridMode(getGridMode());
+        });
+    </script>
+
+</body>
+</html>
