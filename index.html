@@ -77,14 +77,14 @@
         ::-webkit-scrollbar-track { background: #fdfaf7; }
         ::-webkit-scrollbar-thumb { background: #e5d1c5; border-radius: 4px; }
 
-        /* ===== ИСПОЛНЕННЫЕ КАРТОЧКИ — ЗОЛОТЫЕ, БЕЗ СКРУГЛЕНИЯ ===== */
+        /* ===== ИСПОЛНЕННЫЕ КАРТОЧКИ — ПРИГЛУШЁННЫЙ ЗОЛОТОЙ ===== */
         .fulfilled-card {
             filter: none;
             opacity: 1;
             transition: all 0.4s ease;
             
-            border: 2px solid #d4af37;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), 0 4px 15px rgba(212, 175, 55, 0.1);
+            border: 2px solid #c9b38b;
+            box-shadow: 0 0 20px rgba(201, 179, 139, 0.15), 0 4px 15px rgba(201, 179, 139, 0.08);
             border-radius: 0;
             background: linear-gradient(145deg, #ffffff, #fdf8f0);
             position: relative;
@@ -98,13 +98,13 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.03), transparent 60%);
+            background: radial-gradient(circle at 30% 20%, rgba(201, 179, 139, 0.03), transparent 60%);
             pointer-events: none;
         }
 
         .fulfilled-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3), 0 8px 25px rgba(212, 175, 55, 0.15);
+            box-shadow: 0 0 30px rgba(201, 179, 139, 0.25), 0 8px 25px rgba(201, 179, 139, 0.12);
         }
 
         .fulfilled-card .card-image-wrapper {
@@ -124,6 +124,66 @@
 
         .fulfilled-card .card-brand {
             color: #b8a040;
+        }
+
+        /* ===== МОБИЛЬНЫЙ ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ ДЛЯ ИСПОЛНЕННЫХ ===== */
+        @media (max-width: 768px) {
+            #completed-grid {
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                gap: 16px;
+                padding-bottom: 12px;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            #completed-grid .fulfilled-card {
+                flex: 0 0 calc(50% - 8px);
+                scroll-snap-align: start;
+                min-width: calc(50% - 8px);
+            }
+            
+            #completed-grid::-webkit-scrollbar {
+                height: 4px;
+            }
+            
+            #completed-grid::-webkit-scrollbar-track {
+                background: #fdfaf7;
+            }
+            
+            #completed-grid::-webkit-scrollbar-thumb {
+                background: #c9b38b;
+                border-radius: 4px;
+            }
+        }
+
+        /* ===== ПЕРЕКЛЮЧАТЕЛЬ СЕТКИ ===== */
+        .grid-toggle-btn {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .grid-toggle-btn:hover {
+            color: #b4846c;
+        }
+
+        .grid-toggle-btn.active {
+            color: #b4846c;
+        }
+
+        .wish-grid-2cols .wish-card {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .wish-grid-3cols .wish-card {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0.5; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
@@ -147,10 +207,21 @@
     <!-- ОСНОВНОЙ КОНТЕНТ -->
     <main class="max-w-7xl mx-auto px-6 md:px-12 py-12">
 
+        <!-- ЖЕЛАНИЯ С ПЕРЕКЛЮЧАТЕЛЕМ -->
         <section id="wishlist" class="mb-24">
             <div class="flex justify-between items-end mb-12 border-b border-leif-sand/40 pb-4">
                 <h3 class="text-3xl md:text-4xl font-serif italic">Мои желания</h3>
-                <span class="text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/40" id="wish-count">Загрузка...</span>
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/40" id="wish-count">Загрузка...</span>
+                    <div class="flex items-center gap-1 ml-2 border border-leif-sand/30 rounded-full p-1">
+                        <button id="grid-toggle-2" class="grid-toggle-btn text-[#b4846c] px-2 py-1 text-xs rounded-full transition-all" title="2 колонки">
+                            <i class="fa-solid fa-grip-lines"></i>
+                        </button>
+                        <button id="grid-toggle-3" class="grid-toggle-btn text-leif-charcoal/30 px-2 py-1 text-xs rounded-full transition-all active" title="3 колонки">
+                            <i class="fa-solid fa-grip"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div id="wish-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12"></div>
         </section>
@@ -183,7 +254,7 @@
             </div>
         </section>
 
-        <!-- ===== ИСПОЛНЕННЫЕ (золотое сияние, без скругления) ===== -->
+        <!-- ИСПОЛНЕННЫЕ (горизонтальный скролл на мобильных) -->
         <section id="fulfilled" class="mb-24">
             <div class="flex justify-between items-end mb-12 border-b border-leif-sand/40 pb-4">
                 <h3 class="text-3xl md:text-4xl font-serif italic text-leif-charcoal/70">
@@ -191,7 +262,7 @@
                 </h3>
                 <span class="text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/30" id="completed-count">0</span>
             </div>
-            <div id="completed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            <div id="completed-grid" class="grid grid-cols-2 md:grid-cols-4 gap-8"></div>
         </section>
 
     </main>
@@ -324,7 +395,7 @@
             `).join('');
         }
 
-        // ----- РЕНДЕРИНГ ВЫПОЛНЕННЫХ (без скругления, без сердечка) -----
+        // ----- РЕНДЕРИНГ ВЫПОЛНЕННЫХ -----
         function renderCompleted() {
             const grid = document.getElementById('completed-grid');
             const wishes = getWishes();
@@ -332,7 +403,7 @@
             const completedWishes = wishes.filter(w => completedIds.includes(w.id));
 
             document.getElementById('completed-count').textContent = 
-                completedWishes.length > 0 ? `Благодарна за ${completedWishes.length} 💛` : '0';
+                completedWishes.length > 0 ? `${completedWishes.length} 💛` : '0';
 
             if (completedWishes.length === 0) {
                 grid.innerHTML = `
@@ -358,9 +429,6 @@
                         <div class="card-brand text-xs uppercase tracking-widest">${w.brand || '✨ Подарок'}</div>
                         <h4 class="card-title text-lg font-serif italic mb-0.5">${w.title}</h4>
                         <p class="text-sm text-leif-charcoal/50">${w.price}</p>
-                        <div class="mt-2 text-xs text-[#d4af37]">
-                            <span class="inline-block animate-pulse">💛</span> Спасибо!
-                        </div>
                     </div>
                 </div>
             `).join('');
@@ -510,6 +578,46 @@
         // ----- КНОПКА СИНХРОНИЗАЦИИ -----
         document.getElementById('sync-btn').addEventListener('click', syncData);
 
+        // ----- ПЕРЕКЛЮЧАТЕЛЬ СЕТКИ (2 или 3 колонки) -----
+        const gridToggle2 = document.getElementById('grid-toggle-2');
+        const gridToggle3 = document.getElementById('grid-toggle-3');
+        const wishGrid = document.getElementById('wish-grid');
+
+        function getGridMode() {
+            return localStorage.getItem('wishGridMode') || '3cols';
+        }
+
+        function setGridMode(mode) {
+            localStorage.setItem('wishGridMode', mode);
+            wishGrid.classList.remove('wish-grid-2cols', 'wish-grid-3cols');
+            wishGrid.classList.add(`wish-grid-${mode}`);
+            
+            gridToggle2.classList.toggle('active', mode === '2cols');
+            gridToggle2.classList.toggle('text-leif-charcoal/30', mode !== '2cols');
+            gridToggle2.classList.toggle('text-[#b4846c]', mode === '2cols');
+            
+            gridToggle3.classList.toggle('active', mode === '3cols');
+            gridToggle3.classList.toggle('text-leif-charcoal/30', mode !== '3cols');
+            gridToggle3.classList.toggle('text-[#b4846c]', mode === '3cols');
+            
+            if (mode === '2cols') {
+                wishGrid.classList.add('grid-cols-2');
+                wishGrid.classList.remove('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+                wishGrid.classList.add('md:grid-cols-2');
+            } else {
+                wishGrid.classList.remove('grid-cols-2');
+                wishGrid.classList.add('grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+            }
+        }
+
+        gridToggle2.addEventListener('click', () => {
+            setGridMode('2cols');
+        });
+
+        gridToggle3.addEventListener('click', () => {
+            setGridMode('3cols');
+        });
+
         // ----- ЗАПУСК -----
         document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('wish-count').textContent = 'Загрузка...';
@@ -518,6 +626,7 @@
             renderCompleted();
             renderCalendar();
             renderEvents();
+            setGridMode(getGridMode());
         });
     </script>
 
