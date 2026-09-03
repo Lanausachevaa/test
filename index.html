@@ -77,7 +77,7 @@
         ::-webkit-scrollbar-track { background: #fdfaf7; }
         ::-webkit-scrollbar-thumb { background: #e5d1c5; border-radius: 4px; }
 
-        /* ===== ИСПОЛНЕННЫЕ КАРТОЧКИ — ЗОЛОТЫЕ И СИЯЮЩИЕ ===== */
+        /* ===== ИСПОЛНЕННЫЕ КАРТОЧКИ — ЗОЛОТЫЕ, БЕЗ СКРУГЛЕНИЯ ===== */
         .fulfilled-card {
             filter: none;
             opacity: 1;
@@ -85,7 +85,7 @@
             
             border: 2px solid #d4af37;
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), 0 4px 15px rgba(212, 175, 55, 0.1);
-            border-radius: 8px;
+            border-radius: 0;
             background: linear-gradient(145deg, #ffffff, #fdf8f0);
             position: relative;
             overflow: hidden;
@@ -107,22 +107,15 @@
             box-shadow: 0 0 30px rgba(212, 175, 55, 0.3), 0 8px 25px rgba(212, 175, 55, 0.15);
         }
 
-        /* Золотое сердечко на картинке */
         .fulfilled-card .card-image-wrapper {
-            position: relative;
-            overflow: hidden;
-            border-radius: 8px 8px 0 0;
+            padding: 4px;
         }
 
-        .fulfilled-card .card-image-wrapper::after {
-            content: '💛';
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 24px;
-            opacity: 0.9;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-            animation: sparkle 2.5s ease-in-out infinite;
+        .fulfilled-card .card-image-wrapper img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
         }
 
         .fulfilled-card .card-title {
@@ -131,11 +124,6 @@
 
         .fulfilled-card .card-brand {
             color: #b8a040;
-        }
-
-        @keyframes sparkle {
-            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
-            50% { transform: scale(1.15) rotate(5deg); opacity: 1; }
         }
     </style>
 </head>
@@ -195,11 +183,11 @@
             </div>
         </section>
 
-        <!-- ===== ИСПОЛНЕННЫЕ (с золотым сиянием) ===== -->
+        <!-- ===== ИСПОЛНЕННЫЕ (золотое сияние, без скругления) ===== -->
         <section id="fulfilled" class="mb-24">
             <div class="flex justify-between items-end mb-12 border-b border-leif-sand/40 pb-4">
                 <h3 class="text-3xl md:text-4xl font-serif italic text-leif-charcoal/70">
-                    Исполненные <span class="text-[#d4af37]">✨</span>
+                    Исполненные
                 </h3>
                 <span class="text-[10px] uppercase tracking-[0.15em] text-leif-charcoal/30" id="completed-count">0</span>
             </div>
@@ -336,7 +324,7 @@
             `).join('');
         }
 
-        // ----- РЕНДЕРИНГ ВЫПОЛНЕННЫХ (ЗОЛОТЫЕ И СИЯЮЩИЕ) -----
+        // ----- РЕНДЕРИНГ ВЫПОЛНЕННЫХ (без скругления, без сердечка) -----
         function renderCompleted() {
             const grid = document.getElementById('completed-grid');
             const wishes = getWishes();
@@ -359,7 +347,7 @@
                 <div class="fulfilled-card wish-card">
                     <div class="card-image-wrapper">
                         <img 
-                            class="w-full aspect-square object-cover rounded-t-lg" 
+                            class="w-full aspect-square object-cover" 
                             src="${w.image}" 
                             alt="${w.title}"
                             loading="lazy"
